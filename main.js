@@ -7,12 +7,39 @@ var ARROW_MARGIN = 20;
 var ARROW_CAPLEN = 12;
 var ARROW_CAPWIDTH = 10;
 
-var MULTIPLIER = 2;
-var MODULUS = 9;
+var DRAW_ARROWS = true;
 
-// function calculateCycles(modulus, multiplier) {
-//     let numbers = Range()
-// }
+var MULTIPLIER = 5;
+var MODULUS = 100;
+
+function calculateCycles(modulus, multiplier) {
+    let flags = Array.from({length: modulus - 1}, (x, i) => false);
+    let numbers_left = modulus - 1;
+
+    let result = [[]];
+    let current_id = 1;
+    while (numbers_left > 0) {
+        result[result.length - 1].push(current_id)
+        flags[current_id - 1] = true;
+        numbers_left--;
+        current_id = (current_id * multiplier) % modulus;
+
+        if ((current_id == 0) || (flags[current_id - 1])) {
+            result[result.length - 1].push(current_id);
+
+            if (numbers_left == 0) break;
+
+            if (current_id == 0) current_id = 1;
+            let ii = 0;
+            while (flags[current_id - 1]) {
+                ii++;
+                current_id = (current_id % (modulus - 1)) + 1;
+            }
+            result.push([]);
+        }
+    }
+    return result;
+}
 
 function onLoad() {
     var mp = new MainPainter();
@@ -22,7 +49,7 @@ function onLoad() {
 function length(x1, y1, x2, y2) {
     return Math.sqrt(
         Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)
-    )
+    );
 }
 
 function line2vecs(x1, y1, x2, y2) {
@@ -40,12 +67,19 @@ class MainPainter {
         this.ctx = this.canvas.getContext("2d");
         this.center_X = this.canvas.width / 2;
         this.center_Y = this.canvas.height / 2;
-        this.R = Math.min(this.center_X, this.center_Y) * 0.95
+        this.R = Math.min(this.center_X, this.center_Y) * 0.95;
     }
 
     drawAll(modulus=MODULUS, multiplier=MULTIPLIER) {
         this.drawCircle();
         this.drawNPoints(modulus);
+
+        let cycles = calculateCycles(modulus, multiplier);
+        for (const cycle of cycles) {
+            for (let index = 0; index < cycle.length - 1; index++) {
+                this.drawSegment(cycle[index], cycle[index + 1], modulus);
+            }
+        }
     }
 
     drawCircle() {
@@ -87,10 +121,9 @@ class MainPainter {
         }
     }
 
-    drawSegment(a, b, N, arrow=true) {
+    drawSegment(a, b, N, arrow=DRAW_ARROWS) {
         let [ax, ay] = this.getPointCoords(a, N);
         let [bx, by] = this.getPointCoords(b, N);
-        console.log(ax, ay, bx, by);
 
         let ctx = this.ctx;
         ctx.beginPath();
