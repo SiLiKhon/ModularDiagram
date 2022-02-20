@@ -1,18 +1,58 @@
-var CIRCLE_COLOR = "#000000";
-var CIRCLE_LW = 2;
-var POINT_COLOR = "#000000";
-var POINT_SIZE = 0.5;
-var SEGMENT_WIDTH = 0.2;
-var ARROW_MARGIN = 20;
-var ARROW_CAPLEN = 12;
-var ARROW_CAPWIDTH = 10;
+var SETUP = {
+    "CIRCLE_COLOR" : "#000000",
+    "CIRCLE_LW" : 2,
+    "POINT_COLOR" : "#000000",
+    "POINT_SIZE" : 0.5,
+    "SEGMENT_WIDTH" : 1.0,
+    "ARROW_MARGIN" : 20,
+    "ARROW_CAPLEN" : 12,
+    "ARROW_CAPWIDTH" : 10,
+    "DRAW_ARROWS" : false,
+    "LEN_BASED_COLOR" : false,
+    "LOOP_BASED_COLOR" : false,
+    "MULTIPLIER" : 2,
+    "MODULUS" : 9,
+}
 
-var DRAW_ARROWS = false;
-var LEN_BASED_COLOR = true;
-var LOOP_BASED_COLOR = false;
+// based on https://stackoverflow.com/a/4209094/3801744
+function setQueryVariable(variable, type) {
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+            if (pair[1]) SETUP[variable] = type(pair[1]);
+        }
+    }
+}
 
-var MULTIPLIER = 33;
-var MODULUS = 567;
+setQueryVariable("CIRCLE_COLOR", String);
+setQueryVariable("CIRCLE_LW", Number);
+setQueryVariable("POINT_COLOR", String);
+setQueryVariable("POINT_SIZE", Number);
+setQueryVariable("SEGMENT_WIDTH", Number);
+setQueryVariable("ARROW_MARGIN", Number);
+setQueryVariable("ARROW_CAPLEN", Number);
+setQueryVariable("ARROW_CAPWIDTH", Number);
+setQueryVariable("DRAW_ARROWS", Boolean);
+setQueryVariable("LEN_BASED_COLOR", Boolean);
+setQueryVariable("LOOP_BASED_COLOR", Boolean);
+setQueryVariable("MULTIPLIER", Number);
+setQueryVariable("MODULUS", Number);
+
+var CIRCLE_COLOR = SETUP["CIRCLE_COLOR"];
+var CIRCLE_LW = SETUP["CIRCLE_LW"];
+var POINT_COLOR = SETUP["POINT_COLOR"];
+var POINT_SIZE = SETUP["POINT_SIZE"];
+var SEGMENT_WIDTH = SETUP["SEGMENT_WIDTH"];
+var ARROW_MARGIN = SETUP["ARROW_MARGIN"];
+var ARROW_CAPLEN = SETUP["ARROW_CAPLEN"];
+var ARROW_CAPWIDTH = SETUP["ARROW_CAPWIDTH"];
+var DRAW_ARROWS = SETUP["DRAW_ARROWS"];
+var LEN_BASED_COLOR = SETUP["LEN_BASED_COLOR"];
+var LOOP_BASED_COLOR = SETUP["LOOP_BASED_COLOR"];
+var MULTIPLIER = SETUP["MULTIPLIER"];
+var MODULUS = SETUP["MODULUS"];
 
 
 function colorChannelToHex(v) {

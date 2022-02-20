@@ -5,6 +5,16 @@
     </head>
     <body onload="onLoad();">
         <canvas id="diagram" width="600" height="600"></canvas>
+        <form>
+            <label for="POINT_SIZE">POINT_SIZE:</label><br><input type="number" id="POINT_SIZE" name="POINT_SIZE" value="3" min="0.1" max="5.0" step="0.1"><br>
+            <label for="SEGMENT_WIDTH">SEGMENT_WIDTH:</label><br><input type="number" id="SEGMENT_WIDTH" name="SEGMENT_WIDTH" value="1.0" min="0.1" max="5.0" step="0.1"><br>
+            <label for="DRAW_ARROWS">DRAW_ARROWS:</label><br><input type="checkbox" id="DRAW_ARROWS" name="DRAW_ARROWS" checked><br>
+            <label for="LEN_BASED_COLOR">LEN_BASED_COLOR:</label><br><input type="checkbox" id="LEN_BASED_COLOR" name="LEN_BASED_COLOR"><br>
+            <label for="LOOP_BASED_COLOR">LOOP_BASED_COLOR:</label><br><input type="checkbox" id="LOOP_BASED_COLOR" name="LOOP_BASED_COLOR"><br>
+            <label for="MULTIPLIER">MULTIPLIER:</label><br><input type="number" id="MULTIPLIER" name="MULTIPLIER" min="1" step="1" value="2"><br>
+            <label for="MODULUS">MODULUS:</label><br><input type="number" id="MODULUS" name="MODULUS" min="1" step="1" value="9"><br>
+            <input type="submit" value="Submit">
+          </form>
     </body>
     <script src="main.js"></script>
 </html>
