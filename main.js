@@ -1,16 +1,99 @@
-var CIRCLE_COLOR = "#803080";
+var CIRCLE_COLOR = "#000000";
 var CIRCLE_LW = 2;
-var POINT_COLOR = "#300080";
-var POINT_SIZE = 5;
-var SEGMENT_WIDTH = 2;
+var POINT_COLOR = "#000000";
+var POINT_SIZE = 0.5;
+var SEGMENT_WIDTH = 0.2;
 var ARROW_MARGIN = 20;
 var ARROW_CAPLEN = 12;
 var ARROW_CAPWIDTH = 10;
 
-var DRAW_ARROWS = true;
+var DRAW_ARROWS = false;
+var LEN_BASED_COLOR = true;
+var LOOP_BASED_COLOR = false;
 
-var MULTIPLIER = 5;
-var MODULUS = 100;
+var MULTIPLIER = 33;
+var MODULUS = 567;
+
+
+function colorChannelToHex(v) {
+    let result = Math.round(255 * v).toString(16);
+    while (result.length < 2) result = "0" + result;
+    return result;
+}
+
+function color(r, g, b) {
+    let result = (
+        "#"
+        + colorChannelToHex(r)
+        + colorChannelToHex(g)
+        + colorChannelToHex(b)
+    );
+    return result;
+}
+
+
+// Taken from: https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately#17243070
+function HSVtoRGB(h, s, v) {
+    var r, g, b, i, f, p, q, t;
+
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    return color(r, g, b);
+}
+
+
+function genColorList(N) {
+    let result = Array(N);
+    for (let index = 0; index < result.length; index++) {
+        result[index] = HSVtoRGB(index / N, 0.9, 0.9);
+    }
+    return result;
+}
+
+class CMap {
+    constructor(vals, r, g, b) {
+        this.vals = vals;
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+
+    get(v) {
+        if (v <= this.vals[0]) {
+            return color(this.r[0], this.g[0], this.b[0]);
+        }
+        if (v >= this.vals[this.vals.length - 1]) {
+            return color(this.r[this.vals.length - 1], this.g[this.vals.length - 1], this.b[this.vals.length - 1]);
+        }
+        let id = 1;
+        while (v > this.vals[id]) id++;
+
+        let alpha = (v - this.vals[id - 1]) / (this.vals[id] - this.vals[id - 1]);
+        let r = this.r[id - 1] * (1 - alpha) + this.r[id] * alpha;
+        let g = this.g[id - 1] * (1 - alpha) + this.g[id] * alpha;
+        let b = this.b[id - 1] * (1 - alpha) + this.b[id] * alpha;
+
+        return color(r, g, b);
+    }
+}
+
+let cmap = new CMap(
+    [0.1, 0.9],
+    [0.8, 0.0],
+    [0.8, 0.8],
+    [0.0, 0.8]
+);
 
 function calculateCycles(modulus, multiplier) {
     let flags = Array.from({length: modulus - 1}, (x, i) => false);
@@ -72,14 +155,22 @@ class MainPainter {
 
     drawAll(modulus=MODULUS, multiplier=MULTIPLIER) {
         this.drawCircle();
-        this.drawNPoints(modulus);
 
         let cycles = calculateCycles(modulus, multiplier);
-        for (const cycle of cycles) {
+        let listed_colors = genColorList(cycles.length);
+
+        for (let c_idx = 0; c_idx < cycles.length; c_idx++) {
+            let cycle = cycles[c_idx];
             for (let index = 0; index < cycle.length - 1; index++) {
-                this.drawSegment(cycle[index], cycle[index + 1], modulus);
+                if (LOOP_BASED_COLOR) {
+                    this.drawSegment(cycle[index], cycle[index + 1], modulus, DRAW_ARROWS, listed_colors[c_idx]);
+                } else {
+                    this.drawSegment(cycle[index], cycle[index + 1], modulus);
+                }
             }
         }
+
+        this.drawNPoints(modulus);
     }
 
     drawCircle() {
@@ -121,7 +212,7 @@ class MainPainter {
         }
     }
 
-    drawSegment(a, b, N, arrow=DRAW_ARROWS) {
+    drawSegment(a, b, N, arrow=DRAW_ARROWS, force_color=null) {
         let [ax, ay] = this.getPointCoords(a, N);
         let [bx, by] = this.getPointCoords(b, N);
 
@@ -131,6 +222,17 @@ class MainPainter {
         ctx.lineTo(bx, by);
         ctx.closePath();
         ctx.strokeStyle = "#000000";
+        if (!force_color) {
+            if (LEN_BASED_COLOR) {
+                let len = length(ax, ay, bx, by);
+                ctx.strokeStyle = cmap.get(
+                    len / (this.R * 2)
+                );
+            }
+        } else {
+            ctx.strokeStyle = force_color;
+        }
+        ctx.fillStyle = ctx.strokeStyle;
         ctx.lineWidth = SEGMENT_WIDTH;
         ctx.stroke();
 
@@ -150,7 +252,6 @@ class MainPainter {
             ctx.lineTo(x1, y1);
             ctx.lineTo(x3, y3);
             ctx.closePath();
-            ctx.fillStyle = "#000000";
             ctx.fill();
         }
     }
